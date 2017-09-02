@@ -1,6 +1,7 @@
 # rawhttp
 
 [![Build Status](https://travis-ci.org/tomnomnom/rawhttp.svg?branch=master)](https://travis-ci.org/tomnomnom/rawhttp)
+[![Documentation](https://img.shields.io/badge/godoc-Reference-brightgreen.svg?style=flat)](https://godoc.org/github.com/tomnomnom/rawhttp)
 
 rawhttp is a [Go](https://golang.org/) package for making HTTP requests.
 It intends to fill a niche that [https://golang.org/pkg/net/http/](net/http) does not cover:
