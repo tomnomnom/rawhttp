@@ -4,6 +4,8 @@ rawhttp is a [Go](https://golang.org/) package for making HTTP requests.
 It intends to fill a nice that [https://golang.org/pkg/net/http/](net/http) does not cover:
 having *complete* control over the requests being sent to the server.
 
+Full documentation can be found on [GoDoc](https://godoc.org/github.com/tomnomnom/rawhttp).
+
 ## Example
 
 ```go
