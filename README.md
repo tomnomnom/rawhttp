@@ -10,6 +10,8 @@ having *complete* control over the requests being sent to the server.
 rawhttp purposefully does as little validation as possible, and you can override just about
 anything about the request; even the line endings.
 
+**Warning:** This is a work in progress. The API isn't fixed yet.
+
 Full documentation can be found on [GoDoc](https://godoc.org/github.com/tomnomnom/rawhttp).
 
 ## Example
