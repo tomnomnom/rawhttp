@@ -22,9 +22,9 @@ func TestRaw(t *testing.T) {
 	}
 
 	req := RawRequest{
-		transport: "tcp",
-		host:      u.Host,
-		request:   "GET /anything HTTP/1.1\r\n" + "Host: localhost\r\n",
+		Hostname: u.Hostname(),
+		Port:     u.Port(),
+		Request:  "GET /anything HTTP/1.1\r\n" + "Host: localhost\r\n",
 	}
 
 	resp, err := Do(req)
