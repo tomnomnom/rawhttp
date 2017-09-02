@@ -33,6 +33,9 @@ type Request struct {
 	// Method is the HTTP verb. E.g. GET
 	Method string
 
+	// Scheme is the protocol scheme. E.g. https
+	Scheme string
+
 	// Hostname is the hostname to connect to. E.g. localhost
 	Hostname string
 
@@ -77,6 +80,7 @@ func FromURL(method, rawurl string) (*Request, error) {
 
 	r.TLS = u.Scheme == "https"
 	r.Method = method
+	r.Scheme = u.Scheme
 	r.Hostname = u.Hostname()
 	r.Port = u.Port()
 	r.Path = u.Path
@@ -142,11 +146,26 @@ func (r Request) fullPath() string {
 	return r.Path + q + f
 }
 
+// URL forms and returns a complete URL for the request
+func (r Request) URL() string {
+	return fmt.Sprintf(
+		"%s://%s%s",
+		r.Scheme,
+		r.Host(),
+		r.fullPath(),
+	)
+}
+
+// RequestLine returns the request line. E.g. GET / HTTP/1.1
+func (r Request) RequestLine() string {
+	return fmt.Sprintf("%s %s %s", r.Method, r.fullPath(), r.Proto)
+}
+
 // String returns a plain-text version of the request to be sent to the server
 func (r Request) String() string {
 	var b bytes.Buffer
 
-	b.WriteString(fmt.Sprintf("%s %s %s%s", r.Method, r.fullPath(), r.Proto, r.EOL))
+	b.WriteString(fmt.Sprintf("%s%s", r.RequestLine(), r.EOL))
 
 	for _, h := range r.Headers {
 		b.WriteString(fmt.Sprintf("%s%s", h, r.EOL))
