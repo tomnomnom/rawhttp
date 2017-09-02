@@ -23,6 +23,7 @@ func main() {
 	req.Query = "one=1&two=2"
 	req.Fragment = "anchor"
 	req.Proto = "HTTP/1.1"
+	req.EOL = "\r\n"
 
 	req.AddHeader("Content-Type: application/x-www-form-urlencoded")
 
@@ -38,6 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("< %s\n", resp.StatusLine())
 	for _, h := range resp.Headers() {
 		fmt.Printf("< %s\n", h)
 	}

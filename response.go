@@ -34,6 +34,11 @@ func (r Response) Header(search string) string {
 	return ""
 }
 
+// StatusLine returns the HTTP status line from the response
+func (r Response) StatusLine() string {
+	return r.rawStatus
+}
+
 // Headers returns the response headers
 func (r Response) Headers() []string {
 	return r.headers

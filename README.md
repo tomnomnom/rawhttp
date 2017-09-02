@@ -1,8 +1,11 @@
 # rawhttp
 
 rawhttp is a [Go](https://golang.org/) package for making HTTP requests.
-It intends to fill a nice that [https://golang.org/pkg/net/http/](net/http) does not cover:
+It intends to fill a niche that [https://golang.org/pkg/net/http/](net/http) does not cover:
 having *complete* control over the requests being sent to the server.
+
+rawhttp purposefully does as little validation as possible, and you can override just about
+anything about the request, even the line endings.
 
 Full documentation can be found on [GoDoc](https://godoc.org/github.com/tomnomnom/rawhttp).
 
@@ -24,6 +27,7 @@ req.Path = "/anything"
 req.Query = "one=1&two=2"
 req.Fragment = "anchor"
 req.Proto = "HTTP/1.1"
+req.EOL = "\r\n"
 
 req.AddHeader("Content-Type: application/x-www-form-urlencoded")
 
@@ -39,6 +43,7 @@ if err != nil {
 	log.Fatal(err)
 }
 
+fmt.Printf("< %s\n", resp.StatusLine())
 for _, h := range resp.Headers() {
 	fmt.Printf("< %s\n", h)
 }
@@ -54,6 +59,7 @@ Content-Length: 38
 
 username=AzureDiamond&password=hunter2
 
+< HTTP/1.1 200 OK
 < Connection: keep-alive
 < Server: meinheld/0.6.1
 < Date: Sat, 02 Sep 2017 13:22:06 GMT

@@ -59,6 +59,9 @@ type Request struct {
 	// Body is the 'POST' data to send. E.g:
 	//   username=AzureDiamond&password=hunter2
 	Body string
+
+	// EOL is the string that should be used for line endings. E.g. \r\n
+	EOL string
 }
 
 // FromURL returns a *Request for a given method and URL and any
@@ -80,6 +83,7 @@ func FromURL(method, rawurl string) (*Request, error) {
 	r.Query = u.RawQuery
 	r.Fragment = u.Fragment
 	r.Proto = "HTTP/1.1"
+	r.EOL = "\r\n"
 
 	if r.Path == "" {
 		r.Path = "/"
@@ -142,13 +146,13 @@ func (r Request) fullPath() string {
 func (r Request) String() string {
 	var b bytes.Buffer
 
-	b.WriteString(fmt.Sprintf("%s %s %s\r\n", r.Method, r.fullPath(), r.Proto))
+	b.WriteString(fmt.Sprintf("%s %s %s%s", r.Method, r.fullPath(), r.Proto, r.EOL))
 
 	for _, h := range r.Headers {
-		b.WriteString(fmt.Sprintf("%s\r\n", h))
+		b.WriteString(fmt.Sprintf("%s%s", h, r.EOL))
 	}
 
-	b.WriteString("\r\n")
+	b.WriteString(r.EOL)
 
 	b.WriteString(r.Body)
 
