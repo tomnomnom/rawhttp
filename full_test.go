@@ -43,7 +43,7 @@ func TestRaw(t *testing.T) {
 }
 
 func TestFromURL(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Response", "check")
 		fmt.Fprintln(w, "the response")
 	}))

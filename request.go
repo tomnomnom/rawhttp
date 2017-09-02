@@ -154,7 +154,11 @@ func Do(req Requester) (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		conn, connerr = tls.Dial("tcp", req.Host(), &tls.Config{RootCAs: roots})
+
+		// This library is meant for doing stupid stuff, so skipping cert
+		// verification is actually the right thing to do
+		conf := &tls.Config{RootCAs: roots, InsecureSkipVerify: true}
+		conn, connerr = tls.Dial("tcp", req.Host(), conf)
 
 	} else {
 		conn, connerr = net.Dial("tcp", req.Host())
