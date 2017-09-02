@@ -23,38 +23,6 @@ type Requester interface {
 	String() string
 }
 
-// RawRequest is the most basic implementation of Requester. You should
-// probably only use it if you're doing something *really* weird
-type RawRequest struct {
-	// TLS should be true if TLS should be used
-	TLS bool
-
-	// Hostname is the name of the host to connect to. E.g: localhost
-	Hostname string
-
-	// Port is the port to connect to. E.g.: 80
-	Port string
-
-	// Request is the actual message to send to the server. E.g:
-	//   GET / HTTP/1.1\r\nHost:...
-	Request string
-}
-
-// IsTLS returns true if the connection should use TLS
-func (r RawRequest) IsTLS() bool {
-	return r.TLS
-}
-
-// Host returns the hostname:port pair
-func (r RawRequest) Host() string {
-	return r.Hostname + ":" + r.Port
-}
-
-// String returns the message to send to the server
-func (r RawRequest) String() string {
-	return r.Request
-}
-
 // Request is the main implementation of Requester. It gives you
 // fine-grained control over just about everything to do with the
 // request, but with the posibility of sane defaults.
@@ -181,6 +149,38 @@ func (r Request) String() string {
 	return b.String()
 }
 
+// RawRequest is the most basic implementation of Requester. You should
+// probably only use it if you're doing something *really* weird
+type RawRequest struct {
+	// TLS should be true if TLS should be used
+	TLS bool
+
+	// Hostname is the name of the host to connect to. E.g: localhost
+	Hostname string
+
+	// Port is the port to connect to. E.g.: 80
+	Port string
+
+	// Request is the actual message to send to the server. E.g:
+	//   GET / HTTP/1.1\r\nHost:...
+	Request string
+}
+
+// IsTLS returns true if the connection should use TLS
+func (r RawRequest) IsTLS() bool {
+	return r.TLS
+}
+
+// Host returns the hostname:port pair
+func (r RawRequest) Host() string {
+	return r.Hostname + ":" + r.Port
+}
+
+// String returns the message to send to the server
+func (r RawRequest) String() string {
+	return r.Request
+}
+
 // Do performs the HTTP request for the given Requester and returns
 // a *Response and any error that occured
 func Do(req Requester) (*Response, error) {
@@ -211,5 +211,5 @@ func Do(req Requester) (*Response, error) {
 	fmt.Fprintf(conn, req.String())
 	fmt.Fprintf(conn, "\r\n")
 
-	return NewResponse(conn)
+	return newResponse(conn)
 }

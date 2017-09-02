@@ -8,16 +8,15 @@ import (
 	"strings"
 )
 
+// A Response wraps the HTTP response from the server
 type Response struct {
 	rawStatus string
 	headers   []string
 	body      []byte
 }
 
-func (r *Response) AddHeader(header string) {
-	r.headers = append(r.headers, header)
-}
-
+// Header finds and returns the value of a header on the response.
+// An empty string is returned if no match is found.
 func (r Response) Header(search string) string {
 	search = strings.ToLower(search)
 
@@ -35,7 +34,25 @@ func (r Response) Header(search string) string {
 	return ""
 }
 
-func NewResponse(conn io.Reader) (*Response, error) {
+// Headers returns the response headers
+func (r Response) Headers() []string {
+	return r.headers
+}
+
+// Body returns the response body
+func (r Response) Body() []byte {
+	return r.body
+}
+
+// addHeader adds a header to the *Response
+func (r *Response) addHeader(header string) {
+	r.headers = append(r.headers, header)
+}
+
+// newResponse accepts an io.Reader, reads the response
+// headers and body and returns a new *Response and any
+// error that occured.
+func newResponse(conn io.Reader) (*Response, error) {
 
 	r := bufio.NewReader(conn)
 	resp := &Response{}
@@ -54,7 +71,7 @@ func NewResponse(conn io.Reader) (*Response, error) {
 			break
 		}
 
-		resp.AddHeader(line)
+		resp.addHeader(line)
 	}
 
 	if cl := resp.Header("Content-Length"); cl != "" {

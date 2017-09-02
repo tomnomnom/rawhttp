@@ -32,7 +32,7 @@ func TestRaw(t *testing.T) {
 		t.Errorf("want nil error, have %s", err)
 	}
 
-	have := strings.TrimSpace(string(resp.body))
+	have := strings.TrimSpace(string(resp.Body()))
 	if have != "the response" {
 		t.Errorf("want body to be 'the response'; have '%s'", have)
 	}
@@ -62,7 +62,7 @@ func TestFromURL(t *testing.T) {
 		t.Fatalf("want nil error, have %s", err)
 	}
 
-	have := strings.TrimSpace(string(resp.body))
+	have := strings.TrimSpace(string(resp.Body()))
 	if have != "the response" {
 		t.Errorf("want body to be 'the response'; have '%s'", have)
 	}
