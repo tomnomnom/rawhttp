@@ -1,11 +1,13 @@
 # rawhttp
 
+[![Build Status](https://travis-ci.org/tomnomnom/rawhttp.svg?branch=master)](https://travis-ci.org/tomnomnom/rawhttp)
+
 rawhttp is a [Go](https://golang.org/) package for making HTTP requests.
 It intends to fill a niche that [https://golang.org/pkg/net/http/](net/http) does not cover:
 having *complete* control over the requests being sent to the server.
 
 rawhttp purposefully does as little validation as possible, and you can override just about
-anything about the request, even the line endings.
+anything about the request; even the line endings.
 
 Full documentation can be found on [GoDoc](https://godoc.org/github.com/tomnomnom/rawhttp).
 
@@ -94,3 +96,4 @@ username=AzureDiamond&password=hunter2
   "url": "https://httpbin.org/anything?one=1&two=2"
 }
 ```
+
