@@ -53,7 +53,7 @@ func TestFromURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want nil error, have %s", err)
 	}
-	req.AutoSetHostHeader()
+	req.AutoSetHost()
 	req.Body = "This is some POST data"
 
 	resp, err := Do(req)

@@ -112,10 +112,16 @@ func (r *Request) AddHeader(h string) {
 	r.Headers = append(r.Headers, h)
 }
 
-// AutoSetHostHeader adds a Host header to the request
+// AutoSetHost adds a Host header to the request
 // using the value of Request.Hostname
-func (r *Request) AutoSetHostHeader() {
+func (r *Request) AutoSetHost() {
 	r.AddHeader(fmt.Sprintf("Host: %s", r.Hostname))
+}
+
+// AutoSetContentLength adds a Content-Length header
+// to the request with the length of Request.Body as the value
+func (r *Request) AutoSetContentLength() {
+	r.AddHeader(fmt.Sprintf("Content-Length: %d", len(r.Body)))
 }
 
 // fullPath returns the path including query string and fragment
