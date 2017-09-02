@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestSimple(t *testing.T) {
+func TestRaw(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Response", "check")
 		fmt.Fprintln(w, "the response")
@@ -23,14 +23,43 @@ func TestSimple(t *testing.T) {
 
 	req := RawRequest{
 		transport: "tcp",
-		host:      u.Hostname(),
-		port:      u.Port(),
+		host:      u.Host,
 		request:   "GET /anything HTTP/1.1\r\n" + "Host: localhost\r\n",
 	}
 
 	resp, err := Do(req)
 	if err != nil {
 		t.Errorf("want nil error, have %s", err)
+	}
+
+	have := strings.TrimSpace(string(resp.body))
+	if have != "the response" {
+		t.Errorf("want body to be 'the response'; have '%s'", have)
+	}
+
+	if resp.Header("Response") != "check" {
+		t.Errorf("want response header to be 'check' have '%s'", resp.Header("Response"))
+	}
+}
+
+func TestFromURL(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Response", "check")
+		fmt.Fprintln(w, "the response")
+	}))
+	defer ts.Close()
+
+	req, err := FromURL("GET", ts.URL)
+	if err != nil {
+		t.Fatalf("want nil error, have %s", err)
+	}
+	req.AutoSetHostHeader()
+	t.Logf("%s", req)
+
+	resp, err := Do(req)
+
+	if err != nil {
+		t.Fatalf("want nil error, have %s", err)
 	}
 
 	have := strings.TrimSpace(string(resp.body))

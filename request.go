@@ -1,24 +1,25 @@
 package rawhttp
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
+	"net/url"
+	"strings"
 )
 
-type Request interface {
+type Requester interface {
 	IsTLS() bool
 	Host() string
-	Port() string
 	String() string
 }
 
 type RawRequest struct {
 	transport string
 	host      string
-	port      string
 	request   string
 }
 
@@ -30,15 +31,116 @@ func (r RawRequest) Host() string {
 	return r.host
 }
 
-func (r RawRequest) Port() string {
-	return r.port
-}
-
 func (r RawRequest) String() string {
 	return r.request
 }
 
-func Do(req Request) (*Response, error) {
+func FromURL(method, rawurl string) (*Request, error) {
+	r := &Request{}
+
+	u, err := url.Parse(rawurl)
+	if err != nil {
+		return r, err
+	}
+
+	r.TLS = u.Scheme == "https"
+	r.Method = method
+	r.Hostname = u.Hostname()
+	r.Port = u.Port()
+	r.Path = u.Path
+	r.Query = u.RawQuery
+	r.Fragment = u.Fragment
+	r.Proto = "HTTP/1.1"
+
+	if r.Path == "" {
+		r.Path = "/"
+	}
+
+	if r.Port == "" {
+		if r.TLS {
+			r.Port = "443"
+		} else {
+			r.Port = "80"
+		}
+	}
+
+	return r, nil
+
+}
+
+type Request struct {
+	TLS      bool
+	Method   string
+	Hostname string
+	Port     string
+	Path     string
+	Query    string
+	Fragment string
+	Proto    string
+	Headers  []string
+}
+
+func (r Request) IsTLS() bool {
+	return r.TLS
+}
+
+func (r Request) Host() string {
+	return r.Hostname + ":" + r.Port
+}
+
+func (r *Request) AddHeader(h string) {
+	r.Headers = append(r.Headers, h)
+}
+
+func (r Request) fullPath() string {
+
+	q := ""
+	if r.Query != "" {
+		q = "?" + r.Query
+	}
+
+	f := ""
+	if r.Fragment != "" {
+		f = "#" + r.Fragment
+	}
+	return r.Path + q + f
+}
+
+func (r Request) hasHeader(search string) bool {
+	search = strings.ToLower(search) + ":"
+
+	for _, h := range r.Headers {
+		if len(h) < len(search) {
+			continue
+		}
+
+		key := h[:len(search)]
+		if strings.ToLower(key) == search {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Request) AutoSetHostHeader() {
+	r.AddHeader(fmt.Sprintf("Host: %s", r.Hostname))
+}
+
+func (r Request) String() string {
+	var b bytes.Buffer
+
+	b.WriteString(fmt.Sprintf("%s %s %s\r\n", r.Method, r.fullPath(), r.Proto))
+
+	for _, h := range r.Headers {
+		b.WriteString(fmt.Sprintf("%s\r\n", h))
+	}
+
+	b.WriteString("\r\n")
+
+	return b.String()
+}
+
+func Do(req Requester) (*Response, error) {
 	var conn io.ReadWriter
 	var connerr error
 
@@ -49,17 +151,10 @@ func Do(req Request) (*Response, error) {
 		if err != nil {
 			return nil, err
 		}
-		conn, connerr = tls.Dial(
-			"tcp",
-			fmt.Sprintf("%s:%s", req.Host(), req.Port()),
-			&tls.Config{RootCAs: roots},
-		)
+		conn, connerr = tls.Dial("tcp", req.Host(), &tls.Config{RootCAs: roots})
 
 	} else {
-		conn, connerr = net.Dial(
-			"tcp",
-			fmt.Sprintf("%s:%s", req.Host(), req.Port()),
-		)
+		conn, connerr = net.Dial("tcp", req.Host())
 	}
 
 	if connerr != nil {
@@ -70,5 +165,4 @@ func Do(req Request) (*Response, error) {
 	fmt.Fprintf(conn, "\r\n")
 
 	return NewResponse(conn)
-
 }
