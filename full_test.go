@@ -49,12 +49,12 @@ func TestFromURL(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	req, err := FromURL("GET", ts.URL)
+	req, err := FromURL("POST", ts.URL)
 	if err != nil {
 		t.Fatalf("want nil error, have %s", err)
 	}
 	req.AutoSetHostHeader()
-	t.Logf("%s", req)
+	req.Body = "This is some POST data"
 
 	resp, err := Do(req)
 

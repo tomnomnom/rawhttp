@@ -35,6 +35,19 @@ func (r RawRequest) String() string {
 	return r.request
 }
 
+type Request struct {
+	TLS      bool
+	Method   string
+	Hostname string
+	Port     string
+	Path     string
+	Query    string
+	Fragment string
+	Proto    string
+	Headers  []string
+	Body     string
+}
+
 func FromURL(method, rawurl string) (*Request, error) {
 	r := &Request{}
 
@@ -66,18 +79,6 @@ func FromURL(method, rawurl string) (*Request, error) {
 
 	return r, nil
 
-}
-
-type Request struct {
-	TLS      bool
-	Method   string
-	Hostname string
-	Port     string
-	Path     string
-	Query    string
-	Fragment string
-	Proto    string
-	Headers  []string
 }
 
 func (r Request) IsTLS() bool {
@@ -136,6 +137,8 @@ func (r Request) String() string {
 	}
 
 	b.WriteString("\r\n")
+
+	b.WriteString(r.Body)
 
 	return b.String()
 }
