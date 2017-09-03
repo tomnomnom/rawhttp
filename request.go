@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"strings"
 )
 
 // A Requester defines the bare minimum set of methods needed to make an HTTP request.
@@ -118,6 +119,25 @@ func (r Request) Host() string {
 // AddHeader adds a header to the *Request
 func (r *Request) AddHeader(h string) {
 	r.Headers = append(r.Headers, h)
+}
+
+// Header finds and returns the value of a header on the request.
+// An empty string is returned if no match is found.
+func (r Request) Header(search string) string {
+	search = strings.ToLower(search)
+
+	for _, header := range r.Headers {
+
+		p := strings.SplitN(header, ":", 2)
+		if len(p) != 2 {
+			continue
+		}
+
+		if strings.ToLower(p[0]) == search {
+			return strings.TrimSpace(p[1])
+		}
+	}
+	return ""
 }
 
 // AutoSetHost adds a Host header to the request
@@ -237,8 +257,8 @@ func Do(req Requester) (*Response, error) {
 		return nil, connerr
 	}
 
-	fmt.Fprintf(conn, req.String())
-	fmt.Fprintf(conn, "\r\n")
+	fmt.Fprint(conn, req.String())
+	fmt.Fprint(conn, "\r\n")
 
 	return newResponse(conn)
 }
