@@ -79,12 +79,29 @@ func FromURL(method, rawurl string) (*Request, error) {
 		return r, err
 	}
 
+	// url.Parse() tends to mess with the path, so we need to
+	// try and fix that.
+	schemeEtc := strings.SplitN(rawurl, "//", 2)
+	if len(schemeEtc) != 2 {
+		return nil, fmt.Errorf("invalid url: %s", rawurl)
+	}
+
+	pathEtc := strings.SplitN(schemeEtc[1], "/", 2)
+	path := "/"
+	if len(pathEtc) == 2 {
+		// Remove any query string or fragment
+		path = "/" + pathEtc[1]
+		noQuery := strings.Split(path, "?")
+		noFragment := strings.Split(noQuery[0], "#")
+		path = noFragment[0]
+	}
+
 	r.TLS = u.Scheme == "https"
 	r.Method = method
 	r.Scheme = u.Scheme
 	r.Hostname = u.Hostname()
 	r.Port = u.Port()
-	r.Path = u.Path
+	r.Path = path
 	r.Query = u.RawQuery
 	r.Fragment = u.Fragment
 	r.Proto = "HTTP/1.1"

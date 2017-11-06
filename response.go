@@ -34,9 +34,40 @@ func (r Response) Header(search string) string {
 	return ""
 }
 
+// ParseLocation parses the Location header of a response,
+// using the initial request for context on relative URLs
+func (r Response) ParseLocation(req *Request) string {
+	loc := r.Header("Location")
+
+	if loc == "" {
+		return ""
+	}
+
+	// Relative locations need the context of the request
+	if len(loc) > 2 && loc[:2] == "//" {
+		return req.Scheme + ":" + loc
+	}
+
+	if len(loc) > 0 && loc[0] == '/' {
+		return req.Scheme + "://" + req.Hostname + loc
+	}
+
+	return loc
+}
+
 // StatusLine returns the HTTP status line from the response
 func (r Response) StatusLine() string {
 	return r.rawStatus
+}
+
+// StatusCode returns the HTTP status code as a string; e.g. 200
+func (r Response) StatusCode() string {
+	parts := strings.SplitN(r.rawStatus, " ", 3)
+	if len(parts) != 3 {
+		return ""
+	}
+
+	return parts[1]
 }
 
 // Headers returns the response headers

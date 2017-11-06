@@ -40,6 +40,10 @@ func TestRaw(t *testing.T) {
 	if resp.Header("Response") != "check" {
 		t.Errorf("want response header to be 'check' have '%s'", resp.Header("Response"))
 	}
+
+	if resp.StatusCode() != "200" {
+		t.Errorf("want 200 response; have %s", resp.StatusCode())
+	}
 }
 
 func TestFromURL(t *testing.T) {
