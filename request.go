@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // A Requester defines the bare minimum set of methods needed to make an HTTP request.
@@ -22,6 +23,9 @@ type Requester interface {
 	// String should return the request as a string E.g:
 	//   GET / HTTP/1.1\r\nHost:...
 	String() string
+
+	// GetTimeout returns the timeout for a request
+	GetTimeout() time.Duration
 }
 
 // Request is the main implementation of Requester. It gives you
@@ -66,6 +70,9 @@ type Request struct {
 
 	// EOL is the string that should be used for line endings. E.g. \r\n
 	EOL string
+
+	// Deadline
+	Timeout time.Duration
 }
 
 // FromURL returns a *Request for a given method and URL and any
@@ -106,6 +113,7 @@ func FromURL(method, rawurl string) (*Request, error) {
 	r.Fragment = u.Fragment
 	r.Proto = "HTTP/1.1"
 	r.EOL = "\r\n"
+	r.Timeout = time.Second * 30
 
 	if r.Path == "" {
 		r.Path = "/"
@@ -215,6 +223,15 @@ func (r Request) String() string {
 	return b.String()
 }
 
+// GetTimeout returns the timeout for a request
+func (r Request) GetTimeout() time.Duration {
+	// default 30 seconds
+	if r.Timeout == 0 {
+		return time.Second * 30
+	}
+	return r.Timeout
+}
+
 // RawRequest is the most basic implementation of Requester. You should
 // probably only use it if you're doing something *really* weird
 type RawRequest struct {
@@ -230,6 +247,9 @@ type RawRequest struct {
 	// Request is the actual message to send to the server. E.g:
 	//   GET / HTTP/1.1\r\nHost:...
 	Request string
+
+	// Timeout for the request
+	Timeout time.Duration
 }
 
 // IsTLS returns true if the connection should use TLS
@@ -245,6 +265,15 @@ func (r RawRequest) Host() string {
 // String returns the message to send to the server
 func (r RawRequest) String() string {
 	return r.Request
+}
+
+// GetTimeout returns the timeout for the request
+func (r RawRequest) GetTimeout() time.Duration {
+	// default 30 seconds
+	if r.Timeout == 0 {
+		return time.Second * 30
+	}
+	return r.Timeout
 }
 
 // Do performs the HTTP request for the given Requester and returns
@@ -264,10 +293,13 @@ func Do(req Requester) (*Response, error) {
 		// This library is meant for doing stupid stuff, so skipping cert
 		// verification is actually the right thing to do
 		conf := &tls.Config{RootCAs: roots, InsecureSkipVerify: true}
-		conn, connerr = tls.Dial("tcp", req.Host(), conf)
+		conn, connerr = tls.DialWithDialer(&net.Dialer{
+			Timeout: req.GetTimeout(),
+		}, "tcp", req.Host(), conf)
 
 	} else {
-		conn, connerr = net.Dial("tcp", req.Host())
+		d := net.Dialer{Timeout: req.GetTimeout()}
+		conn, connerr = d.Dial("tcp", req.Host())
 	}
 
 	if connerr != nil {
