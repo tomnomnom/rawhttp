@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // A Response wraps the HTTP response from the server
@@ -13,6 +14,7 @@ type Response struct {
 	rawStatus string
 	headers   []string
 	body      []byte
+	Duration  time.Duration
 }
 
 // Header finds and returns the value of a header on the response.
