@@ -281,6 +281,11 @@ func (r RawRequest) GetTimeout() time.Duration {
 func Do(req Requester) (*Response, error) {
 	var conn io.ReadWriter
 	var connerr error
+	var start time.Time
+	var duration time.Duration
+	var response *Response
+
+	start = time.Now()
 
 	// This needs timeouts because it's fairly likely
 	// that something will go wrong :)
@@ -302,6 +307,8 @@ func Do(req Requester) (*Response, error) {
 		conn, connerr = d.Dial("tcp", req.Host())
 	}
 
+	duration = time.Since(start)
+
 	if connerr != nil {
 		return nil, connerr
 	}
@@ -309,5 +316,8 @@ func Do(req Requester) (*Response, error) {
 	fmt.Fprint(conn, req.String())
 	fmt.Fprint(conn, "\r\n")
 
-	return newResponse(conn)
+	response, err := newResponse(conn)
+	response.Duration = duration
+
+	return response, err
 }
