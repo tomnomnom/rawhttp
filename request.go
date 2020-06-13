@@ -309,5 +309,5 @@ func Do(req Requester) (*Response, error) {
 	fmt.Fprint(conn, req.String())
 	fmt.Fprint(conn, "\r\n")
 
-	return newResponse(conn)
+	return newResponse(conn, req.GetTimeout())
 }

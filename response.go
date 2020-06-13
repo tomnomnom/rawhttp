@@ -2,10 +2,12 @@ package rawhttp
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // A Response wraps the HTTP response from the server
@@ -88,15 +90,33 @@ func (r *Response) addHeader(header string) {
 // newResponse accepts an io.Reader, reads the response
 // headers and body and returns a new *Response and any
 // error that occured.
-func newResponse(conn io.Reader) (*Response, error) {
+func newResponse(conn io.Reader, readTimeout time.Duration) (*Response, error) {
 
 	r := bufio.NewReader(conn)
 	resp := &Response{}
 
-	s, err := r.ReadString('\n')
-	if err != nil {
+	//Timeout if server sends no data
+	resultChan := make(chan string, 1)
+	errChan := make(chan error, 1)
+	go func() {
+		s, err := r.ReadString('\n')
+		if err != nil {
+			errChan <- err
+			return
+		}
+		resultChan <- s
+	}()
+
+	var s string
+	select {
+	case res := <-resultChan:
+		s = res
+	case err := <-errChan:
 		return nil, err
+	case <-time.After(readTimeout):
+		return nil, errors.New("Server sent no data")
 	}
+
 	resp.rawStatus = strings.TrimSpace(s)
 
 	for {
